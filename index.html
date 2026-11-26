@@ -191,6 +191,23 @@ h1,h2,h3{text-wrap:balance;margin:0;font-weight:var(--display-peso)}
 .rv-on .rv.der:not(.visto){transform:translateX(40px)}
 .rv-on:not(.abierta) .aparece{animation-play-state:paused}
 
+/* Fotos: se descubren como una cortina, con zoom suave y un reflejo dorado */
+.rv-on .marco.rv{--dl:0s;position:relative;overflow:hidden;transition:clip-path 1.3s cubic-bezier(.7,0,.2,1) var(--dl),transform .5s ease,box-shadow .5s ease}
+.rv-on .marco.rv img{transition:transform 1.9s cubic-bezier(.2,.7,.2,1) var(--dl),filter 1.6s ease var(--dl)}
+.rv-on .marco.rv:not(.visto){opacity:1;transform:none;clip-path:inset(100% 0 0 0 round 12px)}
+.rv-on .marco.rv.izq:not(.visto){clip-path:inset(0 100% 0 0 round 12px)}
+.rv-on .marco.rv.der:not(.visto){clip-path:inset(0 0 0 100% round 12px)}
+.rv-on .marco.rv.visto{clip-path:inset(0 0 0 0 round 12px)}
+.rv-on .marco.rv:not(.visto) img{transform:scale(1.3);filter:brightness(1.4) saturate(.6) blur(3px)}
+.rv-on .marco.rv::after{content:"";position:absolute;inset:0;border-radius:12px;pointer-events:none;background:linear-gradient(105deg,transparent 30%,rgba(255,240,200,.75) 48%,rgba(230,199,126,.4) 55%,transparent 70%);transform:translateX(-120%)}
+.rv-on .marco.rv.visto::after{animation:reflejo 1.4s ease-out calc(var(--dl) + .9s) forwards}
+@keyframes reflejo{from{transform:translateX(-120%)}to{transform:translateX(120%)}}
+/* Retrato de portada: se abre en arco al abrir el sobre */
+.rv-on .retrato{clip-path:inset(100% 0 0 0 round 999px 999px 16px 16px);transition:clip-path 1.6s cubic-bezier(.7,0,.2,1) .7s}
+.rv-on .retrato img{transform:scale(1.25);transition:transform 2.4s cubic-bezier(.2,.7,.2,1) .7s}
+.rv-on.abierta .retrato{clip-path:inset(0 0 0 0 round 999px 999px 16px 16px)}
+.rv-on.abierta .retrato img{transform:none}
+
 /* Chispas doradas sobre la página */
 #chispas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
 
@@ -225,7 +242,9 @@ h1,h2,h3{text-wrap:balance;margin:0;font-weight:var(--display-peso)}
 
 @media (prefers-reduced-motion:reduce){
   .aparece,.oro-txt,.medalla .dia,.iconos .icono,.btn::after,.env,.sello,.toca{animation:none}
-  .rv-on .rv:not(.visto){opacity:1;transform:none}
+  .rv-on .rv:not(.visto),.rv-on .marco.rv:not(.visto),.rv-on .retrato{opacity:1;transform:none;clip-path:none}
+  .rv-on .marco.rv img,.rv-on .retrato img{transform:none;filter:none}
+  .rv-on .marco.rv::after{display:none}
   .env-carta,.env-solapa,.sobre{transition-duration:.01s;transition-delay:0s}
   #chispas{display:none}
 }
@@ -467,16 +486,24 @@ h1,h2,h3{text-wrap:balance;margin:0;font-weight:var(--display-peso)}
 
   /* Aparición al hacer scroll */
   if('IntersectionObserver' in window){
-    var sel=['.fecha .medalla','.cuenta','.titulo','.logro .cifra','.logro h3','.logro p','.logro .mini','.estilos','.fotos .marco','.orna','.versiculo','.cita','.familia','.det','.tarjeta','.anfitriones','.cierre'];
-    var els=document.querySelectorAll(sel.join(','));
+    var sel=['.fecha .medalla','.cuenta','.titulo','.logro .cifra','.logro h3','.logro p','.logro .mini','.estilos','.fotos .marco','.orna','.versiculo','.cita','.familia','.det','.tarjeta','.anfitriones','.cierre'];    var els=document.querySelectorAll(sel.join(','));
     els.forEach(function(el,i){
       el.classList.add('rv');
-      if(el.matches('.fotos .marco')){var k=Array.prototype.indexOf.call(el.parentNode.children,el);el.style.transitionDelay=(k*.15)+'s';if(k===1)el.classList.add('izq');if(k===2)el.classList.add('der')}
+      if(el.matches('.fotos .marco')){var k=Array.prototype.indexOf.call(el.parentNode.children,el);el.style.setProperty('--dl',(k*.3)+'s');if(k===1)el.classList.add('izq');if(k===2)el.classList.add('der')}
       if(el.matches('.det')){var j=Array.prototype.indexOf.call(el.parentNode.children,el);el.style.transitionDelay=(j*.12)+'s'}
     });
     raiz.classList.add('rv-on');
-    var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){en.target.classList.add('visto');io.unobserve(en.target)}})},{rootMargin:'0px 0px -8% 0px',threshold:.12});
-    els.forEach(function(el){io.observe(el)});
+    /* Las fotos empiezan recortadas (sin área visible), así que se observa su contenedor */
+    var grupos=new Map();
+    els.forEach(function(el){
+      var t=el.classList.contains('marco')?el.parentNode:el;
+      if(!grupos.has(t)) grupos.set(t,[]);
+      grupos.get(t).push(el);
+    });
+    var io=new IntersectionObserver(function(es){es.forEach(function(en){
+      if(en.isIntersecting){grupos.get(en.target).forEach(function(x){x.classList.add('visto')});io.unobserve(en.target)}
+    })},{rootMargin:'0px 0px -12% 0px',threshold:0});
+    grupos.forEach(function(_,t){io.observe(t)});
   }
 
   var meta=new Date('2026-12-18T20:00:00-05:00').getTime();
