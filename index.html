@@ -32,6 +32,7 @@
 /* Opciones de fuentes: agrega ?fuente=b (o #fuente-b) al enlace para ver otra combinación */
 (function(){var m=(location.search+location.hash).match(/fuente[=-]([abcd])/i);document.documentElement.setAttribute('data-fuente',m?m[1].toLowerCase():'a')})();
 </script>
+<script src="config.js?v=1"></script>
 <style>
 /* Layout: una columna tipo tarjeta; azul marino de base con fondos de destellos dorados, el vino solo en detalles (fecha, versículo) y marcos dorados dobles */
 :root{
@@ -156,7 +157,21 @@ h1,h2,h3{text-wrap:balance;margin:0;font-weight:var(--display-peso)}
 .tarjeta form{display:grid;gap:18px}
 .campo{display:grid;gap:6px;transition:opacity .2s}
 .campo label,.campo .lbl{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--oro-claro)}
-.campo input[type=text],.campo input[type=number],.campo textarea{width:100%;font:inherit;color:var(--marfil);background:rgba(18,36,74,.85);border:1px solid rgba(201,164,92,.55);border-radius:10px;padding:12px 14px}
+.campo select{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--oro) 50%),linear-gradient(135deg,var(--oro) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px;background-repeat:no-repeat}
+button.btn{border:0;cursor:pointer;width:100%;font-family:var(--f-text)}
+button.btn:disabled{opacity:.6;cursor:wait}
+.ok-msg{color:var(--oro-claro)}
+/* Pase personal (?n=Nombre&p=2) */
+.pase{display:grid;grid-template-columns:1fr auto;max-width:460px;margin:0 auto 40px;border:1px solid var(--oro);outline:1px solid rgba(230,199,126,.35);outline-offset:5px;border-radius:16px;background:linear-gradient(135deg,rgba(27,50,96,.9),rgba(11,23,48,.9));text-align:left;overflow:hidden}
+.pase[hidden]{display:none}
+.pase-izq{padding:20px 20px 18px;border-right:1px dashed rgba(230,199,126,.6);min-width:0}
+.pase-izq .eyebrow{font-size:.7rem}
+.pase-nombre{margin:6px 0 2px;font-family:var(--f-script);font-size:clamp(2rem,8vw,2.6rem);line-height:1.15;color:var(--oro-vivo);overflow-wrap:anywhere}
+.pase-texto{margin:0;color:var(--texto-suave);font-size:.92rem}
+.pase-der{display:grid;place-items:center;align-content:center;padding:16px 22px;background:radial-gradient(circle at 50% 35%,var(--vino-2),var(--vino) 75%)}
+.pase-der b{font-family:var(--f-display);font-weight:700;font-size:3rem;line-height:1;color:var(--oro-vivo)}
+.pase-der span{font-size:.66rem;letter-spacing:.24em;text-transform:uppercase;color:var(--oro-claro);margin-top:4px}
+.campo input[type=text],.campo input[type=number],.campo select,.campo textarea{width:100%;font:inherit;color:var(--marfil);background:rgba(18,36,74,.85);border:1px solid rgba(201,164,92,.55);border-radius:10px;padding:12px 14px}
 .campo textarea{resize:vertical}
 .campo input::placeholder,.campo textarea::placeholder{color:rgba(205,214,234,.5)}
 .campo input:focus,.campo textarea:focus{outline:2px solid var(--oro);outline-offset:1px}
@@ -329,6 +344,14 @@ h1,h2,h3{text-wrap:balance;margin:0;font-weight:var(--display-peso)}
 
 <section class="fecha">
   <div class="wrap">
+    <div class="pase" id="pase" hidden>
+      <div class="pase-izq">
+        <p class="eyebrow">Pase de invitación</p>
+        <p class="pase-nombre" id="pase-nombre"></p>
+        <p class="pase-texto" id="pase-texto"></p>
+      </div>
+      <div class="pase-der" id="pase-der"><b id="pase-num"></b><span id="pase-lbl">puestos</span></div>
+    </div>
     <div class="medalla" aria-label="Viernes 18 de diciembre de 2026, 8:00 de la noche">
       <span class="dia-sem">Viernes</span>
       <span class="dia">18</span>
@@ -432,10 +455,24 @@ h1,h2,h3{text-wrap:balance;margin:0;font-weight:var(--display-peso)}
         </div>
         <div class="campo" id="campo-personas">
           <label for="personas">Número de personas</label>
-          <input id="personas" name="personas" type="number" min="1" max="10" value="1" inputmode="numeric">
+          <select id="personas" name="personas"></select>
         </div>
         <p class="error" id="rsvp-error" hidden>Escribe tu nombre y elige si asistirás.</p>
         <a class="btn" id="rsvp-enviar" href="https://wa.me/50765619110" target="_blank" rel="noopener">Confirmar por WhatsApp</a>
+      </form>
+    </div>
+
+    <div class="tarjeta">
+      <p class="eyebrow">Mi playlist</p>
+      <h2>¿Qué canción no puede faltar?</h2>
+      <p class="sub">Ayúdame a armar la música de la noche.</p>
+      <form id="formCancion" novalidate>
+        <div class="campo">
+          <label for="cCancion">Canción y artista</label>
+          <input id="cCancion" name="cancion" type="text" placeholder="Ej.: canción – artista" autocomplete="off">
+        </div>
+        <p class="error" id="cAviso" hidden></p>
+        <button class="btn" type="submit" id="cEnviar">Sugerir canción</button>
       </form>
     </div>
 
@@ -570,41 +607,100 @@ h1,h2,h3{text-wrap:balance;margin:0;font-weight:var(--display-peso)}
   }
   tick(); setInterval(tick,1000);
 
-  // Números de WhatsApp (código de país + número, solo dígitos)
-  var WA_CONFIRMAR='50765619110';  // Sarina: confirmaciones
-  var WA_ARIEL='50764648728';      // Ariel: mensajes para ella
+  // Datos compartidos con el panel (config.js)
+  var C=window.INVITACION||{};
+  var WA_CONFIRMAR=C.waConfirmar||'50765619110';  // Sarina: confirmaciones y canciones
+  var WA_ARIEL='50764648728';                     // Ariel: mensajes para ella
+  var SCRIPT=String(C.scriptUrl||'').trim();      // hoja de Google (panel); vacío = WhatsApp
 
   function wa(num,txt){return 'https://wa.me/'+num+'?text='+encodeURIComponent(txt)}
-  function gracias(form,btn,txt){
+  function gracias(form,btn,txt,nota){
     setTimeout(function(){
       form.querySelectorAll('.campo').forEach(function(c){c.hidden=true});
       if(!form.querySelector('.gracias')){
-        var g=document.createElement('p');g.className='gracias';g.textContent=txt;
-        var n=document.createElement('p');n.className='nota';n.style.margin='0';n.textContent='Si WhatsApp no se abrió, toca de nuevo el botón.';
-        form.insertBefore(g,btn);form.insertBefore(n,btn);
+        var g=document.createElement('p');g.className='gracias';g.textContent=txt;form.insertBefore(g,btn);
+        if(nota!==false){var n=document.createElement('p');n.className='nota';n.style.margin='0';n.textContent='Si WhatsApp no se abrió, toca de nuevo el botón.';form.insertBefore(n,btn);}
       }
-      btn.textContent='Volver a enviar';
-    },400);
+      if(nota===false) btn.hidden=true; else btn.textContent='Volver a enviar';
+    },nota===false?0:400);
+  }
+  function enviarHoja(datos){
+    return fetch(SCRIPT,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(datos)})
+      .then(function(r){return r.json()}).then(function(j){if(!j.ok)throw new Error(j.error||'error');return j});
   }
 
-  // Confirmación
+  // Pase personal: ?n=Nombre&p=2
+  var ps=new URLSearchParams(location.search);
+  var invitado=(ps.get('n')||'').trim().slice(0,80);
+  var puestos=parseInt(ps.get('p'),10)>0?Math.min(20,parseInt(ps.get('p'),10)):0;
   var f=document.getElementById('rsvp'),b=document.getElementById('rsvp-enviar'),e=document.getElementById('rsvp-error');
   var personas=document.getElementById('personas'),campoP=document.getElementById('campo-personas');
+  if(invitado||puestos){
+    document.getElementById('pase').hidden=false;
+    document.getElementById('pase-nombre').textContent=invitado||'Nuestro invitado';
+    if(puestos){
+      document.getElementById('pase-num').textContent=puestos;
+      document.getElementById('pase-lbl').textContent=puestos===1?'puesto':'puestos';
+      document.getElementById('pase-texto').textContent=puestos===1?'Hemos reservado un lugar para ti':'Hemos reservado '+puestos+' lugares en tu honor';
+    } else {
+      document.getElementById('pase-der').hidden=true;document.getElementById('pase').style.gridTemplateColumns='1fr';
+      document.getElementById('pase-texto').textContent='Nos encantará celebrar contigo';
+    }
+    if(invitado){f.nombre.value=invitado;var mn=document.getElementById('msj-nombre');if(mn)mn.value=invitado}
+  }
+  var maxP=puestos||6;
+  for(var i=1;i<=maxP;i++){var o=document.createElement('option');o.value=i;o.textContent=i+(i===1?' persona':' personas');personas.appendChild(o)}
+  personas.value=puestos||1;
+  if(SCRIPT) b.textContent='Confirmar asistencia';
+
+  // Confirmación
   function rsvp(){
     var no=f.asistira.value==='No';
     personas.disabled=no;campoP.style.opacity=no?.4:1;
     var t='Confirmación – Graduación de Ariel Marie (18 de diciembre)\nNombre: '+f.nombre.value.trim()+'\n¿Asistirá?: '+f.asistira.value;
     if(f.asistira.value==='Sí') t+='\nPersonas: '+(parseInt(personas.value,10)||1);
+    if(puestos) t+='\n(Pase de '+puestos+(puestos===1?' puesto)':' puestos)');
     b.href=wa(WA_CONFIRMAR,t);
     if(f.nombre.value.trim()&&f.asistira.value) e.hidden=true;
   }
   f.addEventListener('input',rsvp);f.addEventListener('change',rsvp);f.addEventListener('submit',function(ev){ev.preventDefault()});
   b.addEventListener('click',function(ev){
     rsvp();
-    if(!f.nombre.value.trim()||!f.asistira.value){ev.preventDefault();e.hidden=false;(f.nombre.value.trim()?document.getElementById('asis-si'):f.nombre).focus();return;}
-    gracias(f,b,'¡Gracias, '+f.nombre.value.trim().split(' ')[0]+'!');
+    var nom=f.nombre.value.trim();
+    if(!nom||!f.asistira.value){ev.preventDefault();e.textContent='Escribe tu nombre y elige si asistirás.';e.hidden=false;(nom?document.getElementById('asis-si'):f.nombre).focus();return;}
+    if(SCRIPT){
+      ev.preventDefault();
+      var si=f.asistira.value==='Sí',n=parseInt(personas.value,10)||1;
+      b.style.pointerEvents='none';b.textContent='Enviando…';
+      enviarHoja({action:'rsvp',nombre:nom,asiste:si?'si':'no',personas:si?n:0,puestos:puestos||'',invitado:invitado})
+        .then(function(){gracias(f,b,si?'¡Gracias, '+nom.split(' ')[0]+'! Te esperamos':'Gracias por avisarnos, '+nom.split(' ')[0],false)})
+        .catch(function(){e.textContent='No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.';e.hidden=false;b.style.pointerEvents='';b.textContent='Confirmar asistencia'});
+      return;
+    }
+    gracias(f,b,'¡Gracias, '+nom.split(' ')[0]+'!');
   });
   rsvp();
+
+  // Playlist: canción a la hoja o por WhatsApp
+  var fc=document.getElementById('formCancion'),ca=document.getElementById('cAviso'),cb=document.getElementById('cEnviar');
+  fc.addEventListener('submit',function(ev){
+    ev.preventDefault();
+    var c=fc.cancion.value.trim();
+    if(!c){ca.textContent='Escribe la canción que quieres escuchar.';ca.className='error';ca.hidden=false;fc.cancion.focus();return}
+    ca.hidden=true;
+    var quien=(invitado||f.nombre.value||'').trim();
+    if(SCRIPT){
+      cb.disabled=true;cb.textContent='Enviando…';
+      enviarHoja({action:'cancion',cancion:c,nombre:quien})
+        .then(function(){ca.textContent='¡Gracias! «'+c+'» ya está en la playlist.';ca.className='nota ok-msg';ca.hidden=false;fc.cancion.value=''})
+        .catch(function(){ca.textContent='No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.';ca.className='error';ca.hidden=false})
+        .then(function(){cb.disabled=false;cb.textContent='Sugerir canción'});
+      return;
+    }
+    var a=document.createElement('a');a.href=wa(WA_CONFIRMAR,'🎶 Canción para la graduación de Ariel Marie: '+c+(quien?'\n– '+quien:''));a.target='_blank';a.rel='noopener';
+    document.body.appendChild(a);a.click();a.remove();
+    ca.textContent='¡Gracias! Se abrió WhatsApp para enviar tu canción.';ca.className='nota ok-msg';ca.hidden=false;fc.cancion.value='';
+  });
 
   // Mensaje para Ariel
   var m=document.getElementById('msj'),mb=document.getElementById('msj-enviar'),me=document.getElementById('msj-error');
