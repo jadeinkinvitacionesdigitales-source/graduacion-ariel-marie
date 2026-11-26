@@ -222,6 +222,17 @@ h1,h2,h3{text-wrap:balance;margin:0;font-weight:var(--display-peso)}
 .sobre.reproduciendo .sobre-escena{opacity:0;transform:scale(.9);pointer-events:none}
 .sobre.reproduciendo::after{opacity:0}
 .saltar{position:absolute;z-index:3;right:max(16px,env(safe-area-inset-right,0px));bottom:max(18px,env(safe-area-inset-bottom,0px));padding:8px 16px;border-radius:999px;border:1px solid rgba(230,199,126,.7);background:rgba(6,13,29,.55);color:var(--oro-claro);font:500 .75rem var(--f-text);letter-spacing:.16em;text-transform:uppercase;cursor:pointer}
+/* Botón de música */
+.musica{position:fixed;z-index:40;left:max(14px,env(safe-area-inset-left,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));width:48px;height:48px;border-radius:50%;border:0;padding:0;cursor:pointer;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#9b2340,var(--vino) 60%,#3d0614);box-shadow:0 0 0 2px #c9a45c,0 8px 18px rgba(0,0,0,.45)}
+.musica::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:1px dashed rgba(230,199,126,.8);animation:girar 8s linear infinite}
+.musica[aria-pressed="false"]::before{animation-play-state:paused;opacity:.4}
+@keyframes girar{to{transform:rotate(360deg)}}
+.musica svg{width:22px;height:22px;fill:var(--oro-vivo);stroke:var(--oro-vivo);stroke-width:2;stroke-linecap:round}
+.musica .nota{stroke:none}
+.musica .tacha{display:none}
+.musica[aria-pressed="false"] .tacha{display:inline}
+.musica:focus-visible{outline:2px solid var(--marfil);outline-offset:6px}
+@media (prefers-reduced-motion:reduce){.musica::before{animation:none}}
 .saltar:focus-visible{outline:2px solid var(--marfil);outline-offset:3px}
 .sobre-escena{position:relative;display:grid;justify-items:center;gap:26px;text-align:center}
 .sobre-para{margin:0;font-family:var(--f-display);font-size:.8rem;letter-spacing:.42em;text-transform:uppercase;color:var(--oro-claro);padding-left:.42em}
@@ -270,7 +281,7 @@ h1,h2,h3{text-wrap:balance;margin:0;font-weight:var(--display-peso)}
 </style>
 
 <div class="sobre" id="sobre" hidden>
-  <video id="sobre-video" src="img/sobre.mp4" poster="img/sobre-inicio.jpg" playsinline preload="auto" aria-hidden="true"></video>
+  <video id="sobre-video" src="img/sobre.mp4" poster="img/sobre-inicio.jpg" playsinline muted preload="auto" aria-hidden="true"></video>
   <div class="sobre-escena" id="sobre-inicio">
     <p class="sobre-para">Tienes una invitación</p>
     <button class="sello" id="sello" type="button" aria-label="Abrir la invitación">AM</button>
@@ -279,6 +290,10 @@ h1,h2,h3{text-wrap:balance;margin:0;font-weight:var(--display-peso)}
   <button class="saltar" id="saltar" type="button" hidden>Saltar ›</button>
 </div>
 <canvas id="chispas" aria-hidden="true"></canvas>
+<audio id="musica" src="img/cancion.mp3" preload="auto" loop></audio>
+<button class="musica" id="musica-btn" type="button" aria-label="Pausar la música" aria-pressed="true" hidden>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path class="nota" d="M9 18.5a2.5 2.5 0 1 1-2-2.45V5.5l11-2.5v12a2.5 2.5 0 1 1-2-2.45V7.1L9 8.7v9.8z"/><path class="tacha" d="M4 4l16 16" /></svg>
+</button>
 
 </head>
 <body>
@@ -469,8 +484,15 @@ h1,h2,h3{text-wrap:balance;margin:0;font-weight:var(--display-peso)}
   chispas(document.getElementById('chispas'),window.innerWidth<600?28:45,{sube:false});
 
   /* Sobre de entrada (se salta con #abierta) */
+  /* Música: empieza al tocar el sello y sigue en toda la invitación */
+  var musica=document.getElementById('musica'),mBtn=document.getElementById('musica-btn');
+  function estadoMusica(){var on=!musica.paused;mBtn.setAttribute('aria-pressed',on?'true':'false');mBtn.setAttribute('aria-label',on?'Pausar la música':'Reproducir la música')}
+  function sonar(){try{musica.volume=.85;var p=musica.play();if(p&&p.catch)p.catch(estadoMusica)}catch(e){}}
+  musica.addEventListener('play',estadoMusica);musica.addEventListener('pause',estadoMusica);
+  mBtn.addEventListener('click',function(){if(musica.paused)sonar();else musica.pause()});
+
   var sobre=document.getElementById('sobre');
-  function abrir(){raiz.classList.add('abierta');raiz.classList.remove('cerrado')}
+  function abrir(){raiz.classList.add('abierta');raiz.classList.remove('cerrado');mBtn.hidden=false;estadoMusica()}
   if(sobre&&!/abierta/.test(location.hash)){
     sobre.hidden=false;raiz.classList.add('cerrado');
     var vid=document.getElementById('sobre-video'),saltar=document.getElementById('saltar');
@@ -482,10 +504,11 @@ h1,h2,h3{text-wrap:balance;margin:0;font-weight:var(--display-peso)}
     }
     function empezar(){
       if(empezado) return;empezado=true;
+      sonar();
       sobre.classList.add('reproduciendo');saltar.hidden=false;
       if(quieto){terminar();return}
       var p;try{vid.currentTime=0;p=vid.play()}catch(e){terminar();return}
-      if(p&&p.catch) p.catch(function(){vid.muted=true;vid.play().catch(terminar)});
+      if(p&&p.catch) p.catch(terminar);
       reserva=setTimeout(terminar,12500); /* por si el video no avisa que terminó */
     }
     vid.addEventListener('ended',terminar);
