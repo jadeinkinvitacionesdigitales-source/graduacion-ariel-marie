@@ -30,7 +30,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..800;1,400..600&family=Pinyon+Script&family=Cinzel:wght@400..800&family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,400..700;1,400..600&family=Parisienne&family=Marcellus&family=Alex+Brush&family=Jost:wght@300;400;500&display=swap">
 <script>
 /* Opciones de fuentes: agrega ?fuente=b (o #fuente-b) al enlace para ver otra combinación */
-(function(){var m=(location.search+location.hash).match(/fuente[=-]([abcd])/i);document.documentElement.setAttribute('data-fuente',m?m[1].toLowerCase():'a')})();
+(function(){var m=(location.search+location.hash).match(/fuente[=-]([abcd])/i);document.documentElement.setAttribute('data-fuente',m?m[1].toLowerCase():'a');var v=(location.search+location.hash).match(/verso[=-]([abcd])/i);document.documentElement.setAttribute('data-verso',v?v[1].toLowerCase():'a')})();
 </script>
 <script src="config.js?v=1"></script>
 <style>
@@ -43,9 +43,13 @@
   --f-script:"Pinyon Script", cursive;
   --f-text:"Jost", "Segoe UI", system-ui, sans-serif;
   --display-peso:600;
+  --f-verso:"Playfair Display", Georgia, serif; --verso-estilo:italic; --verso-peso:500; --verso-tam:clamp(1.55rem,6vw,2.2rem);
   --oro-grad:linear-gradient(135deg,#8a6a2c 0%,#e9d39a 38%,#c9a45c 55%,#f4e4b4 72%,#9c7a36 100%);
   color-scheme:dark;
 }
+[data-verso="b"]{--f-verso:"Cormorant Garamond", Georgia, serif;--verso-estilo:italic;--verso-peso:600;--verso-tam:clamp(1.75rem,6.8vw,2.5rem)}
+[data-verso="c"]{--f-verso:"Marcellus", Georgia, serif;--verso-estilo:normal;--verso-peso:400;--verso-tam:clamp(1.45rem,5.6vw,2rem)}
+[data-verso="d"]{--f-verso:"Cinzel", Georgia, serif;--verso-estilo:normal;--verso-peso:500;--verso-tam:clamp(1.3rem,5vw,1.8rem)}
 [data-fuente="b"]{--f-display:"Cinzel", Georgia, serif;--f-script:"Great Vibes", cursive;--display-peso:600}
 [data-fuente="c"]{--f-display:"Cormorant Garamond", Georgia, serif;--f-script:"Parisienne", cursive;--display-peso:700}
 [data-fuente="d"]{--f-display:"Marcellus", Georgia, serif;--f-script:"Alex Brush", cursive;--display-peso:400}
@@ -130,9 +134,9 @@ h1,h2,h3{text-wrap:balance;margin:0;font-weight:var(--display-peso)}
 .logro.principal{padding:36px 18px;border:1px solid rgba(230,199,126,.6);border-radius:18px;background:linear-gradient(180deg,rgba(27,50,96,.55),rgba(11,23,48,.2))}
 
 /* ---------- Versículo (toque vino) ---------- */
-.versiculo-sec{background-image:url(img/fondo-vino.webp);text-align:center}
+.versiculo-sec{background-image:url(img/fondo-vino3.webp);text-align:center}
 .versiculo-sec::before{background:linear-gradient(180deg,var(--marino) 0%,rgba(40,4,14,.35) 25%,rgba(40,4,14,.45) 75%,var(--marino) 100%)}
-.versiculo{font-family:var(--f-script);font-size:clamp(2.3rem,8.6vw,3.4rem);line-height:1.2;color:var(--oro-vivo);max-width:18ch;margin:8px auto 0;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+.versiculo{font-family:var(--f-verso);font-style:var(--verso-estilo);font-weight:var(--verso-peso);font-size:var(--verso-tam);line-height:1.35;color:var(--oro-vivo);max-width:22ch;margin:8px auto 0;text-shadow:0 2px 12px rgba(0,0,0,.5)}
 .cita{margin:14px 0 0;font-size:.82rem;letter-spacing:.3em;text-transform:uppercase;color:var(--oro-claro)}
 .familia{max-width:560px;margin:38px auto 0;aspect-ratio:3/2}
 .familia img{object-position:50% 30%}
@@ -302,7 +306,7 @@ button.btn:disabled{opacity:.6;cursor:wait}
   .logro.lado .mini,.logro.lado .estilos{justify-content:flex-start}
   .logro.lado .cifra{align-items:flex-start}
   .logro.lado p{margin-left:0}
-  .logro.inv .fotos{order:2}
+  .logro.inv .fotos{order:-1}
 }
 @media (max-width:560px){
   body{font-size:16px}
@@ -371,7 +375,7 @@ button.btn:disabled{opacity:.6;cursor:wait}
 
 <section class="sec">
   <div class="wrap">
-    <div class="titulo"><p class="eyebrow">Celebramos</p><h2>Tres bendiciones, una graduanda</h2><span class="brocha" aria-hidden="true"></span></div>
+    <div class="titulo"><h2>Tres bendiciones, una graduanda</h2><span class="brocha" aria-hidden="true"></span></div>
     <div class="logros">
 
       <article class="logro principal">
@@ -385,31 +389,31 @@ button.btn:disabled{opacity:.6;cursor:wait}
       </article>
 
       <article class="logro lado">
-        <div class="fotos tres">
-          <div class="marco grande p-ciudad"><img src="img/banda-ciudad.webp" alt="Ariel Marie al frente de la banda del colegio" loading="lazy"></div>
-          <div class="marco p-baston"><img src="img/banda-baston.webp" alt="Ariel Marie levantando el bastón de Tambor Mayor" loading="lazy"></div>
-          <div class="marco p-banda"><img src="img/banda.webp" alt="Ariel Marie desfilando como Tambor Mayor" loading="lazy"></div>
-        </div>
         <div>
           <div class="cifra"><b>5</b><span>años</span></div>
           <h3>Banda del CSA</h3>
           <p>Cinco años marchando con la banda escolar. Se despide como <span class="destaca">Tambor Mayor</span>.</p>
           <div class="mini" aria-hidden="true"><i class="icono i-gorro"></i><i class="icono i-baston"></i></div>
         </div>
+        <div class="fotos tres">
+          <div class="marco grande p-ciudad"><img src="img/banda-ciudad.webp" alt="Ariel Marie al frente de la banda del colegio" loading="lazy"></div>
+          <div class="marco p-baston"><img src="img/banda-baston.webp" alt="Ariel Marie levantando el bastón de Tambor Mayor" loading="lazy"></div>
+          <div class="marco p-banda"><img src="img/banda.webp" alt="Ariel Marie desfilando como Tambor Mayor" loading="lazy"></div>
+        </div>
       </article>
 
       <article class="logro lado inv">
-        <div class="fotos tres">
-          <div class="marco grande p-danza"><img src="img/danza.webp" alt="Ariel Marie bailando en el escenario con traje típico" loading="lazy"></div>
-          <div class="marco p-flamenco"><img src="img/flamenco.webp" alt="Ariel Marie bailando flamenco con abanico" loading="lazy"></div>
-          <div class="marco p-academia"><img src="img/academia.webp" alt="Ariel Marie con birrete rosado y su diploma de la academia" loading="lazy"></div>
-        </div>
         <div>
           <div class="cifra"><b>16</b><span>años</span></div>
           <h3>Academia de Danza</h3>
           <p>Termina sus estudios generales en danza tras dieciséis años de clases y funciones.</p>
           <div class="estilos"><span>Ballet</span><span>Flamenco</span><span>Jazz</span><span>Contemporáneo</span></div>
           <div class="mini" aria-hidden="true"><i class="icono i-zapatillas"></i><i class="icono i-abanico"></i></div>
+        </div>
+        <div class="fotos tres">
+          <div class="marco grande p-danza"><img src="img/danza.webp" alt="Ariel Marie bailando en el escenario con traje típico" loading="lazy"></div>
+          <div class="marco p-flamenco"><img src="img/flamenco.webp" alt="Ariel Marie bailando flamenco con abanico" loading="lazy"></div>
+          <div class="marco p-academia"><img src="img/academia.webp" alt="Ariel Marie con birrete rosado y su diploma de la academia" loading="lazy"></div>
         </div>
       </article>
 
